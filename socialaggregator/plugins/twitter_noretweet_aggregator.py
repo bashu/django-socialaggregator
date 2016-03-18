@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
+
 from datetime import datetime
 
-from twitter_aggregator import Aggregator as TwitterAggregator
+from .twitter_aggregator import Aggregator as TwitterAggregator
 
 
 class Aggregator(TwitterAggregator):

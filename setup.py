@@ -1,38 +1,85 @@
+#!/usr/bin/env python
+
 import os
+import re
+import sys
+import codecs
+
 from setuptools import setup, find_packages
 
+
+# When creating the sdist, make sure the django.mo file also exists:
+if 'sdist' in sys.argv or 'develop' in sys.argv:
+    os.chdir('socialaggregator')
+    try:
+        from django.core import management
+        management.call_command('compilemessages', stdout=sys.stderr, verbosity=1)
+    except ImportError:
+        if 'sdist' in sys.argv:
+            raise
+    finally:
+        os.chdir('..')
+
+
+def read(*parts):
+    file_path = os.path.join(os.path.dirname(__file__), *parts)
+    return codecs.open(file_path, encoding='utf-8').read()
+
+
+def find_version(*parts):
+    version_file = read(*parts)
+    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", version_file, re.M)
+    if version_match:
+        return str(version_match.group(1))
+    raise RuntimeError("Unable to find version string.")
+
+
 setup(
-    name='emencia-django-socialaggregator',
-    version=__import__('socialaggregator').__version__,
-    description='Django app for aggregate some feeds from social networks.',
-    long_description="%s\n%s" % (open('README.rst').read(), open(os.path.join('docs', 'changelog.rst')).read()),
-    keywords='django, emencia, social networks, aggregation',
-    author=__import__('socialaggregator').__author__,
-    author_email=__import__('socialaggregator').__email__,
-    url=__import__('socialaggregator').__url__,
-    license=__import__('socialaggregator').__license__,
-    packages=find_packages(),
-    classifiers=[
-        'Framework :: Django',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
-        'Environment :: Web Environment',
-        'Intended Audience :: Developers',
-        'Operating System :: OS Independent',
-        'License :: OSI Approved :: GNU Affero General Public License v3',
-        'Development Status :: 5 - Production/Stable',
-        'Topic :: Software Development :: Libraries :: Python Modules'
-    ],
+    name='fluentcms-socialaggregator',
+    version=find_version('socialaggregator', '__init__.py'),
+    license='AGPL License',
+
     install_requires=[
-        'setuptools',
+        # 'twitter',
+        'pytz',
+        'django-filer'
         'django-taggit',
-        'twitter',
-        'python-instagram',
-        'facebook-sdk',
-        'feedparser',
-        'google-api-python-client',
-        'django-filebrowser-no-grappelli>=3.5.6'
+        # 'python-instagram',
+        # 'google-api-python-client',
+        # 'facebook-sdk',
+        # 'feedparser',
     ],
+    requires=[
+        'Django (>=1.4)',
+    ],
+
+    description='Django app for aggregate some feeds from social networks.',
+    long_description=read('README.rst'),
+
+    maintainer='Basil Shubin',
+    maintainer_email='basil.shubin@gmail.com',
+
+    url='https://github.com/bashu/fluentcms-socialaggregator',
+    download_url='https://github.com/bashu/fluentcms-socialaggregator/zipball/master',
+
+    packages=find_packages(exclude=('example*',)),
     include_package_data=True,
-    zip_safe=False
+
+    zip_safe=False,
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Environment :: Web Environment',
+        'Framework :: Django',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: GNU Affero General Public License v3',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.3',
+        'Topic :: Internet :: WWW/HTTP',
+        'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+    ]
 )

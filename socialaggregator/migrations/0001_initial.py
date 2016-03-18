@@ -1,138 +1,93 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
+from django.db import models, migrations
 import datetime
-from south.db import db
-from south.v2 import SchemaMigration
-from django.db import models
+import filebrowser.fields
+import taggit.managers
 
 
-class Migration(SchemaMigration):
+class Migration(migrations.Migration):
 
-    def forwards(self, orm):
-        # Adding model 'Feed'
-        db.create_table(u'socialaggregator_feed', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=250)),
-            ('creation_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('slug', self.gf('django.db.models.fields.SlugField')(unique=True, max_length=100)),
-        ))
-        db.send_create_signal(u'socialaggregator', ['Feed'])
+    dependencies = [
+        ('taggit', '0002_auto_20150616_2121'),
+    ]
 
-        # Adding model 'Aggregator'
-        db.create_table(u'socialaggregator_aggregator', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=250)),
-            ('query', self.gf('django.db.models.fields.CharField')(max_length=250)),
-            ('social_plugin', self.gf('django.db.models.fields.IntegerField')()),
-            ('creation_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('slug', self.gf('django.db.models.fields.SlugField')(unique=True, max_length=100)),
-        ))
-        db.send_create_signal(u'socialaggregator', ['Aggregator'])
-
-        # Adding M2M table for field feeds on 'Aggregator'
-        m2m_table_name = db.shorten_name(u'socialaggregator_aggregator_feeds')
-        db.create_table(m2m_table_name, (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('aggregator', models.ForeignKey(orm[u'socialaggregator.aggregator'], null=False)),
-            ('feed', models.ForeignKey(orm[u'socialaggregator.feed'], null=False))
-        ))
-        db.create_unique(m2m_table_name, ['aggregator_id', 'feed_id'])
-
-        # Adding model 'Ressource'
-        db.create_table(u'socialaggregator_ressource', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=250)),
-            ('description', self.gf('django.db.models.fields.TextField')(blank=True)),
-            ('short_description', self.gf('django.db.models.fields.TextField')(blank=True)),
-            ('image', self.gf('django.db.models.fields.files.ImageField')(max_length=100, blank=True)),
-            ('thumbnail', self.gf('django.db.models.fields.files.ImageField')(max_length=100, blank=True)),
-            ('author', self.gf('django.db.models.fields.CharField')(max_length=250)),
-            ('ressource_date', self.gf('django.db.models.fields.DateTimeField')()),
-            ('priority', self.gf('django.db.models.fields.IntegerField')(default=100)),
-            ('creation_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('slug', self.gf('django.db.models.fields.SlugField')(unique=True, max_length=100)),
-        ))
-        db.send_create_signal(u'socialaggregator', ['Ressource'])
-
-        # Adding M2M table for field feeds on 'Ressource'
-        m2m_table_name = db.shorten_name(u'socialaggregator_ressource_feeds')
-        db.create_table(m2m_table_name, (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('ressource', models.ForeignKey(orm[u'socialaggregator.ressource'], null=False)),
-            ('feed', models.ForeignKey(orm[u'socialaggregator.feed'], null=False))
-        ))
-        db.create_unique(m2m_table_name, ['ressource_id', 'feed_id'])
-
-
-    def backwards(self, orm):
-        # Deleting model 'Feed'
-        db.delete_table(u'socialaggregator_feed')
-
-        # Deleting model 'Aggregator'
-        db.delete_table(u'socialaggregator_aggregator')
-
-        # Removing M2M table for field feeds on 'Aggregator'
-        db.delete_table(db.shorten_name(u'socialaggregator_aggregator_feeds'))
-
-        # Deleting model 'Ressource'
-        db.delete_table(u'socialaggregator_ressource')
-
-        # Removing M2M table for field feeds on 'Ressource'
-        db.delete_table(db.shorten_name(u'socialaggregator_ressource_feeds'))
-
-
-    models = {
-        u'contenttypes.contenttype': {
-            'Meta': {'ordering': "('name',)", 'unique_together': "(('app_label', 'model'),)", 'object_name': 'ContentType', 'db_table': "'django_content_type'"},
-            'app_label': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
-        },
-        u'socialaggregator.aggregator': {
-            'Meta': {'object_name': 'Aggregator'},
-            'creation_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'feeds': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['socialaggregator.Feed']", 'symmetrical': 'False'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '250'}),
-            'query': ('django.db.models.fields.CharField', [], {'max_length': '250'}),
-            'slug': ('django.db.models.fields.SlugField', [], {'unique': 'True', 'max_length': '100'}),
-            'social_plugin': ('django.db.models.fields.IntegerField', [], {})
-        },
-        u'socialaggregator.feed': {
-            'Meta': {'object_name': 'Feed'},
-            'creation_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '250'}),
-            'slug': ('django.db.models.fields.SlugField', [], {'unique': 'True', 'max_length': '100'})
-        },
-        u'socialaggregator.ressource': {
-            'Meta': {'ordering': "('-priority', 'name')", 'object_name': 'Ressource'},
-            'author': ('django.db.models.fields.CharField', [], {'max_length': '250'}),
-            'creation_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'description': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'feeds': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['socialaggregator.Feed']", 'symmetrical': 'False'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'image': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '250'}),
-            'priority': ('django.db.models.fields.IntegerField', [], {'default': '100'}),
-            'ressource_date': ('django.db.models.fields.DateTimeField', [], {}),
-            'short_description': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'slug': ('django.db.models.fields.SlugField', [], {'unique': 'True', 'max_length': '100'}),
-            'thumbnail': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'blank': 'True'})
-        },
-        u'taggit.tag': {
-            'Meta': {'object_name': 'Tag'},
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '100'}),
-            'slug': ('django.db.models.fields.SlugField', [], {'unique': 'True', 'max_length': '100'})
-        },
-        u'taggit.taggeditem': {
-            'Meta': {'object_name': 'TaggedItem'},
-            'content_type': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'taggit_taggeditem_tagged_items'", 'to': u"orm['contenttypes.ContentType']"}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'object_id': ('django.db.models.fields.IntegerField', [], {'db_index': 'True'}),
-            'tag': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'taggit_taggeditem_items'", 'to': u"orm['taggit.Tag']"})
-        }
-    }
-
-    complete_apps = ['socialaggregator']
+    operations = [
+        migrations.CreateModel(
+            name='Aggregator',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=250, verbose_name='name')),
+                ('query', models.CharField(max_length=250, verbose_name='query')),
+                ('social_plugin', models.CharField(max_length=250, verbose_name='social plugin', choices=[(b'edsa_wordpress_rss', b'Wordpress RSS'), (b'edsa_facebook_fanpage', b'Facebook Fanpage'), (b'edsa_youtube_search', b'Youtube search'), (b'edsa_instagram', b'Instagram'), (b'edsa_twitter', b'Twitter')])),
+                ('creation_date', models.DateTimeField(auto_now_add=True, verbose_name='creation date')),
+                ('slug', models.SlugField(unique=True, max_length=100, verbose_name='slug')),
+            ],
+            options={
+                'verbose_name': 'aggregator',
+                'verbose_name_plural': 'aggregators',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Feed',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=250, verbose_name='name')),
+                ('creation_date', models.DateTimeField(auto_now_add=True, verbose_name='creation date')),
+                ('slug', models.SlugField(unique=True, max_length=100, verbose_name='slug')),
+            ],
+            options={
+                'verbose_name': 'feed',
+                'verbose_name_plural': 'feeds',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Ressource',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=250, verbose_name='name')),
+                ('slug', models.SlugField(unique=True, max_length=100, verbose_name='slug')),
+                ('description', models.TextField(verbose_name='description', blank=True)),
+                ('short_description', models.TextField(verbose_name='short description', blank=True)),
+                ('image', filebrowser.fields.FileBrowseField(default=None, max_length=255, null=True, verbose_name='image', blank=True)),
+                ('thumbnail', filebrowser.fields.FileBrowseField(default=None, max_length=255, null=True, verbose_name='thumbnail', blank=True)),
+                ('media_url', models.URLField(max_length=500, verbose_name='media url', blank=True)),
+                ('media_url_type', models.CharField(blank=True, max_length=100, verbose_name='media url type', choices=[(b'url', b'url'), (b'image', b'image'), (b'video', b'video')])),
+                ('priority', models.IntegerField(default=100, verbose_name='display priority')),
+                ('activate', models.BooleanField(default=False, verbose_name='activate')),
+                ('author', models.CharField(max_length=250, verbose_name='author')),
+                ('language', models.CharField(max_length=2, verbose_name='language', blank=True)),
+                ('ressource_date', models.DateTimeField(verbose_name='ressource date')),
+                ('social_id', models.CharField(max_length=250, verbose_name='social_id', blank=True)),
+                ('social_type', models.CharField(default=b'edsa_article', max_length=250, verbose_name='social plugin', choices=[(b'edsa_article', b'Article'), (b'edsa_wordpress_rss', b'Wordpress RSS'), (b'edsa_facebook_fanpage', b'Facebook Fanpage'), (b'edsa_youtube_search', b'Youtube search'), (b'edsa_instagram', b'Instagram'), (b'edsa_twitter', b'Twitter')])),
+                ('query', models.CharField(max_length=250, verbose_name='query', blank=True)),
+                ('favorite', models.BooleanField(default=False, verbose_name='favorite')),
+                ('view_size', models.CharField(default=b'default', max_length=100, verbose_name='view size', choices=[(b'default', b'default'), (b'xsmall', b'Xsmall'), (b'small', b'small'), (b'medium', b'medium'), (b'large', b'large'), (b'xlarge', b'Xlarge')])),
+                ('text_display', models.CharField(default=b'default', max_length=100, verbose_name='text display', choices=[(b'default', b'default'), (b'bottom', b'bottom'), (b'top', b'top')])),
+                ('button_label', models.CharField(max_length=100, verbose_name='button label', blank=True)),
+                ('button_color', models.CharField(default=b'black', max_length=100, verbose_name='button color', choices=[(b'white', b'white'), (b'black', b'black'), (b'primary', b'primary'), (b'secondary', b'secondary'), (b'tertiary', b'tertiary')])),
+                ('background_color', models.CharField(max_length=250, verbose_name='background color', blank=True)),
+                ('new_page', models.BooleanField(default=False, verbose_name='open in new page')),
+                ('creation_date', models.DateTimeField(default=datetime.datetime(2016, 3, 17, 10, 42, 2, 613436), verbose_name='creation date', editable=False)),
+                ('update_date', models.DateTimeField(default=None, verbose_name='update date')),
+                ('updated', models.BooleanField(default=False, verbose_name='updated')),
+                ('feeds', models.ManyToManyField(to='socialaggregator.Feed', verbose_name='feeds')),
+                ('tags', taggit.managers.TaggableManager(to='taggit.Tag', through='taggit.TaggedItem', blank=True, help_text='A comma-separated list of tags.', verbose_name='Tags')),
+            ],
+            options={
+                'ordering': ('-priority', 'name'),
+                'verbose_name': 'ressource',
+                'verbose_name_plural': 'ressources',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.AddField(
+            model_name='aggregator',
+            name='feeds',
+            field=models.ManyToManyField(to='socialaggregator.Feed', verbose_name='feeds'),
+            preserve_default=True,
+        ),
+    ]

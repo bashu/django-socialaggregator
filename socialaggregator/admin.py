@@ -1,92 +1,100 @@
-"""Admin for parrot.gallery"""
+# -*- coding: utf-8 -*-
+
 from datetime import datetime
+
 from django.contrib import admin
+from django.db import transaction
 from django.db import IntegrityError
 from django.utils.translation import ugettext_lazy as _
 
-from socialaggregator.models import Feed
-from socialaggregator.models import Aggregator
-from socialaggregator.models import Ressource
+from .models import Feed, Aggregator, Resource
 
 
 class FeedAdmin(admin.ModelAdmin):
-    prepopulated_fields = {"slug": ("name",)}
-    search_fields = ('name', 'slug',)
-    date_hierarchy = 'creation_date'
-    list_filter = ('creation_date',)
-    list_display = ('name', 'slug', 'creation_date')
+    list_display = ('name', 'slug', 'date_created')
+    search_fields = ('name', 'slug')
+    list_filter = ('date_created',)
+    prepopulated_fields = {'slug': ('name',)}
+    date_hierarchy = 'date_created'
 
 admin.site.register(Feed, FeedAdmin)
 
 
 class AggregatorAdmin(admin.ModelAdmin):
-    prepopulated_fields = {"slug": ("name",)}
+    list_display = ('name', 'slug', 'query', 'social_plugin', 'date_created')
     search_fields = ('name', 'slug', 'query',)
-    date_hierarchy = 'creation_date'
-    list_filter = ('social_plugin', 'creation_date',)
-    list_display = ('name', 'slug', 'query', 'social_plugin', 'creation_date')
+    list_filter = ('social_plugin', 'date_created')
+    prepopulated_fields = {'slug': ('name',)}
+    date_hierarchy = 'date_created'
 
 admin.site.register(Aggregator, AggregatorAdmin)
 
 
-def make_activated(modeladmin, request, queryset):
-    queryset.update(activate=True)
-make_activated.short_description = _("Mark selected ressources as activated")
-
-
-def make_unactivated(modeladmin, request, queryset):
-    queryset.update(activate=False)
-make_unactivated.short_description = _("Mark selected ressources as \
-                                        unactivated")
-
-
-def make_duplicate(modeladmin, request, queryset):
-    for data in queryset:
-        data.pk = None
-        data.activate = False
-        slug = data.slug + '_copy_%i'
-        name = data.name + ' Copy %i'
-        ver = 0
-        data.creation_date = datetime.now()
-        save = False
-        while not save:
-            try:
-                data.slug = slug % ver
-                data.name = name % ver
-                data.update_date = None
-                data.save()
-                save = True
-            except IntegrityError, e:
-                ver += 1
-make_duplicate.short_description = _("Duplicate selected ressources")
-
-
-class RessourceAdmin(admin.ModelAdmin):
-    date_hierarchy = 'ressource_date'
-    prepopulated_fields = {"slug": ("name",)}
-    list_display = ('name', 'author', 'priority', 'view_size', 'language',
-                    'social_type', 'query', 'ressource_date', 'activate',
-                    'updated')
-    list_editable = ('priority','view_size','activate',)
-    list_filter = ('social_type', 'feeds', 'view_size', 'language', 'activate', 'updated')
-    ordering = ['updated', '-ressource_date', 'query']
-    exclude = ('updated', 'update_date',)
-    actions = [make_activated, make_unactivated, make_duplicate]
+class ResourceAdmin(admin.ModelAdmin):
+    list_display = (
+        'name', 'author', 'priority', 'view_size', 'language',
+        'social_type', 'query', 'resource_date', 'activate','updated',
+    )
     search_fields = ('name', 'author', 'description', 'short_description')
-    fieldsets = ((_('Main infos'), {'fields': ('name', 'slug', 'description',
-                                               'short_description', 'image',
-                                               'thumbnail', 'media_url',
-                                               'media_url_type','new_page')}),
-                 (_('Extra infos'), {'fields': ('priority', 'activate',
-                                                'author', 'language', 'feeds',
-                                                'ressource_date', 'tags')}),
-                 (_('Social network infos'), {'fields': ('social_id',
-                                                         'social_type',
-                                                         'query')}),
-                 (_('Display infos'), {'fields': ('favorite', 'view_size',
-                                                  'text_display',
-                                                  'button_label',
-                                                  'button_color',
-                                                  'background_color')}))
+    list_filter = ('social_type', 'feeds', 'view_size', 'language', 'activate', 'updated')
+    list_editable = ('priority','view_size','activate',)
+    prepopulated_fields = {'slug': ('name',)}
+    date_hierarchy = 'resource_date'
 
-admin.site.register(Ressource, RessourceAdmin)
+    actions = ['activate', 'deactivate', 'duplicate']
+
+    fieldsets = (
+        (None, {
+            'fields': (
+                'name', 'slug', 'description', 'short_description',
+                'image', 'thumbnail', 'media_url', 'media_url_type','new_page',
+            ),
+        }),
+        (_("Extra infos"), {
+            'fields': (
+                'priority', 'activate', 'author', 'language', 'feeds', 'resource_date', 'tags',
+            ),
+        }),
+        (_("Social network infos"), {
+            'fields': (
+                'social_id', 'social_type', 'query',
+            ),
+        }),
+        (_("Display infos"), {
+            'fields': (
+                'favorite', 'view_size', 'text_display', 'button_label', 'button_color', 'background_color',
+            ),
+        }),
+    )
+
+    def activate(self, request, queryset):
+        with transaction.commit_on_success():
+            queryset.update(activate=True)
+    activate.short_description = _("Activate selected resources")
+
+    def deactivate(self, request, queryset):
+        with transaction.commit_on_success():
+            queryset.update(activate=False)
+    deactivate.short_description = _("Deactivate selected resources")
+
+    def duplicate(self, request, queryset):
+        with transaction.commit_on_success():
+            for item in queryset:
+                item.pk = None
+                item.activate = False
+                item.date_created = datetime.now()
+
+                slug, name = item.slug + '_copy_%i', item.name + ' Copy %i'
+
+                loop = 0
+                while True:
+                    try:
+                        item.slug, item.name = slug % loop, name % loop
+                        item.update_date = None
+                        item.save()
+                        break
+                    except IntegrityError, e:
+                        loop += 1
+    duplicate.short_description = _("Duplicate selected resources")
+
+admin.site.register(Resource, ResourceAdmin)
