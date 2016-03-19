@@ -4,8 +4,6 @@ from datetime import datetime
 
 from django.db import models
 from django.utils.importlib import import_module
-from django.core.exceptions import ValidationError
-from django.template.defaultfilters import filesizeformat
 from django.utils.translation import ugettext_lazy as _
 
 from taggit.managers import TaggableManager
@@ -14,20 +12,9 @@ from django_extensions.db.fields import (
     CreationDateTimeField, ModificationDateTimeField)
 
 from .managers import ResourceManager, ActivatedManager
+from .validators import ImageSizeValidator
 from .conf import settings
 
-
-def build_social_plugins_list():
-    return [(plugin, data["NAME"]) for plugin, data in
-            settings.SA_PLUGINS.items()]
-
-def validate_image_size(value):
-    size = settings.SA_RESOURCE_IMAGE_SIZE
-    if size != 0 and value.size > size * 1024:
-        raise ValidationError(_("The image size (%s) is bigger than %s") % (
-            filesizeformat(value.size), filesizeformat(size * 1024)))
-
-SOCIAL_PLUGINS = build_social_plugins_list()
 
 
 class Feed(models.Model):
@@ -54,7 +41,9 @@ class Aggregator(models.Model):
 
     query = models.CharField(_('query'), max_length=250)
 
-    social_plugin = models.CharField(_('social plugin'), max_length=250, choices=SOCIAL_PLUGINS)
+    social_plugin = models.CharField(
+        _('social plugin'), max_length=250, choices=[
+            (k, v["NAME"]) for k, v in settings.SA_PLUGINS.items()])
 
     feeds = models.ManyToManyField(Feed, verbose_name=_('feeds'))
 
@@ -79,7 +68,7 @@ class Resource(models.Model):
     short_description = models.TextField(_('short description'), blank=True)
 
     image = FilerImageField(
-        verbose_name=_('image'), validators=[validate_image_size], null=True, blank=True, default=None)
+        verbose_name=_('image'), validators=[ImageSizeValidator()], null=True, blank=True, default=None)
     thumbnail = FilerImageField(
         verbose_name=_('thumbnail'), related_name="+", null=True, blank=True, default=None)
 
