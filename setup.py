@@ -35,7 +35,7 @@ def find_version(*parts):
 
 
 setup(
-    name='fluentcms-socialaggregator',
+    name='django-socialaggregator',
     version=find_version('socialaggregator', '__init__.py'),
     license='AGPL License',
 
@@ -56,11 +56,11 @@ setup(
     description='Django app for aggregate some feeds from social networks.',
     long_description=read('README.rst'),
 
-    maintainer='Basil Shubin',
-    maintainer_email='basil.shubin@gmail.com',
+    author='Basil Shubin',
+    author_email='basil.shubin@gmail.com',
 
-    url='https://github.com/bashu/fluentcms-socialaggregator',
-    download_url='https://github.com/bashu/fluentcms-socialaggregator/zipball/master',
+    url='https://github.com/bashu/django-socialaggregator',
+    download_url='https://github.com/bashu/django-socialaggregator/zipball/master',
 
     packages=find_packages(exclude=('example*',)),
     include_package_data=True,
