@@ -42,7 +42,7 @@ setup(
     install_requires=[
         # 'twitter',
         'pytz',
-        'django-filer'
+        'django-filer',
         'django-taggit',
         # 'python-instagram',
         # 'google-api-python-client',
