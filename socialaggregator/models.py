@@ -1,7 +1,7 @@
 """Models for parrot.gallery"""
-from datetime import datetime
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.utils.importlib import import_module
 
@@ -64,7 +64,7 @@ class Aggregator(models.Model):
 
 class RessourceQuerySet(models.query.QuerySet):
     def update(self, *args, **kwargs):
-        kwargs['update_date'] = datetime.now()
+        kwargs['update_date'] = timezone.now()
         kwargs['updated'] = True
         super(RessourceQuerySet, self).update(*args, **kwargs)
 
@@ -127,7 +127,7 @@ class Ressource(models.Model):
 
     # META DATA
     creation_date = models.DateTimeField(_('creation date'),
-                                         default=datetime.now(),
+                                         default=timezone.now(),
                                          editable=False)
     update_date = models.DateTimeField(_('update date'),
                                        default=None)
@@ -140,7 +140,7 @@ class Ressource(models.Model):
     def save(self, *args, **kwargs):
         if self.update_date and not self.updated:
             self.updated = True
-        self.update_date = datetime.now()
+        self.update_date = timezone.now()
         super(Ressource, self).save(*args, **kwargs)
 
     #@models.permalink
