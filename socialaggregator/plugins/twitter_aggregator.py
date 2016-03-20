@@ -3,6 +3,7 @@ from twitter import OAuth
 from datetime import datetime
 
 from django.conf import settings
+from django.utils import timezone
 from generic import GenericAggregator
 
 
@@ -22,14 +23,15 @@ class Aggregator(GenericAggregator):
 
     def search(self, query):
         res = self.connector.search.tweets(q=query)
+        tz = timezone.get_current_timezone()
         datas = []
         for tweet in res['statuses']:
             data = {'social_id': tweet['id_str'],
                     'name': 'tweet %s' % tweet['id_str'],
                     'slug': 'tweet_%s' % tweet['id_str'],
                     'language': tweet['lang'],
-                    'ressource_date': datetime.strptime(tweet['created_at'],
-                                                        self.datetime_format),
+                    'ressource_date': tz.localize(
+                        datetime.strptime(tweet['created_at'], self.datetime_format)),
                     'description': tweet['text'],
                     'author': tweet['user']['name'],
                     }
