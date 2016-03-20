@@ -3,6 +3,7 @@ from facebook import GraphAPI
 from datetime import datetime
 
 from django.conf import settings
+from django.utils import timezone
 from generic import GenericAggregator
 
 
@@ -26,6 +27,7 @@ class Aggregator(GenericAggregator):
 
     def search(self, query):
         res = self.connector.get_object("%s/posts" % query)
+        tz = timezone.get_current_timezone()
         datas = []
         for post in res['data']:
             if 'message' in post:
@@ -35,12 +37,11 @@ class Aggregator(GenericAggregator):
                 else:
                     link = ""
                     media_url_type = ''
-                date = datetime.strptime(post['created_time'],
-                                         self.datetime_format)
                 data = {'social_id': post['id'],
                         'name': 'fb fanpage %s' % post['id'],
                         'slug': 'fb_fanpage_%s' % post['id'],
-                        'ressource_date': date,
+                        'ressource_date': tz.localize(
+                            datetime.strptime(post['created_time'], self.datetime_format)),
                         'description': post['message'],
                         'media_url': link,
                         'media_url_type': media_url_type,
