@@ -1,6 +1,7 @@
 import feedparser
 from datetime import datetime
 
+from django.utils import timezone
 try:
     from django.utils.text import slugify
 except ImportError:
@@ -18,10 +19,9 @@ class Aggregator(GenericAggregator):
 
     def search(self, query):
         res = feedparser.parse(query)
+        tz = timezone.get_current_timezone()
         datas = []
         for feed in res['entries']:
-            date = datetime.strptime(feed['published'],
-                                     self.datetime_format)
             content = feed['content'][0]
             if content['language']:
                 language = content['language']
@@ -30,7 +30,8 @@ class Aggregator(GenericAggregator):
             data = {'social_id': feed['id'],
                     'name': feed['title'],
                     'slug': slugify(feed['title']),
-                    'ressource_date': date,
+                    'ressource_date': tz.localize(
+                        datetime.strptime(feed['published'], self.datetime_format)),
                     'description': content['value'],
                     'language': language,
                     'media_url': feed['link'],
