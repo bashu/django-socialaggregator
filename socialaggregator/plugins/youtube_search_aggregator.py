@@ -2,6 +2,7 @@ from apiclient.discovery import build
 from datetime import datetime
 
 from django.conf import settings
+from django.utils import timezone
 try:
     from django.utils.text import slugify
 except ImportError:
@@ -27,16 +28,16 @@ class Aggregator(GenericAggregator):
         res = self.connector.search().list(q=query, part="id,snippet",
                                            maxResults=25, type="video",
                                            order="date").execute()
+        tz = timezone.get_current_timezone()
         datas = []
         for video in res['items']:
             infos = video['snippet']
-            date = datetime.strptime(infos['publishedAt'],
-                                     self.datetime_format)
             url = "http://www.youtube.com/watch?v=%s" % video['id']['videoId']
             data = {'social_id': video['id']['videoId'],
                     'name': infos['title'],
                     'slug': slugify(video['id']['videoId']+infos['title']),
-                    'ressource_date': date,
+                    'ressource_date': tz.localize(
+                        datetime.strptime(infos['publishedAt'], self.datetime_format)),
                     'description': infos['description'],
                     'media_url': url,
                     'media_url_type': 'video',
