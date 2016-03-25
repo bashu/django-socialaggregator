@@ -2,6 +2,7 @@ from instagram.client import InstagramAPI
 from datetime import datetime
 
 from django.conf import settings
+from django.utils import timezone
 from generic import GenericAggregator
 
 
@@ -16,6 +17,7 @@ class Aggregator(GenericAggregator):
         if query.startswith('#'):
             query = query.lstrip('#')
         res = self.connector.tag_recent_media(tag_name=query)[0]
+        tz = timezone.get_current_timezone()
         datas = []
         for media in res:
             if media.caption:
@@ -25,7 +27,7 @@ class Aggregator(GenericAggregator):
             data = {'social_id': media.id,
                     'name': 'instagram %s' % media.id,
                     'slug': 'instagram_%s' % media.id,
-                    'ressource_date': media.created_time,
+                    'ressource_date': tz.localize(media.created_time),
                     'description': text,
                     'media_url': media.get_standard_resolution_url(),
                     'media_url_type': 'image',
